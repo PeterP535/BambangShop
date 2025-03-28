@@ -208,4 +208,94 @@ Dengan pendekatan ini, sistem BambangShop menjadi:
 
 #### Reflection Publisher-2
 
+# Pemisahan Service dan Repository dalam Arsitektur MVC Modern
+
+## Mengapa Perlu Memisahkan “Service” dan “Repository” dari Model?
+
+Dalam pola dasar MVC, **Model** memang berfungsi sebagai pusat logika dan data. Namun, dalam praktik rekayasa perangkat lunak modern, pendekatan ini cenderung menimbulkan masalah jangka panjang, terutama saat sistem berkembang. Maka muncullah praktik pemisahan tanggung jawab melalui **Service Layer** dan **Repository Layer**.
+
+### 1. Separation of Concerns (SoC)
+- **Model** bertugas mendefinisikan struktur data dan merepresentasikan entitas (misalnya: `Program`, `Subscriber`, `Notification`).
+- **Repository** bertanggung jawab atas **akses data** seperti mengambil, menyimpan, memperbarui, dan menghapus dari database.
+- **Service** menangani **logika bisnis** yang berkaitan dengan proses domain (misalnya: siapa yang harus menerima notifikasi, validasi bisnis, atau transformasi data).
+
+Dengan memisahkan tiga komponen ini, kode menjadi lebih modular, lebih mudah dipahami, dan lebih mudah diuji.
+
+### 2. Pengujian Lebih Terarah
+- Repository dapat diuji dengan **mock database**.
+- Service diuji dengan logika bisnis tanpa perlu bergantung pada detail penyimpanan data.
+- Model diuji sebagai struktur data murni.
+
+### 3. Adaptasi Teknologi Lebih Mudah
+- Kita bisa mengganti MySQL ke PostgreSQL atau ke penyimpanan file tanpa perlu mengubah logika bisnis.
+- Service tidak peduli bagaimana data diambil, asalkan repository menyediakannya.
+
+---
+
+## Apa yang Terjadi Jika Hanya Menggunakan Model?
+
+Jika kita memusatkan semua logika ke dalam Model, maka setiap model akan menanggung beban tanggung jawab yang terlalu besar. Hal ini bisa menyebabkan masalah berikut:
+
+### Kompleksitas dan Ketergantungan
+- Model **Program** harus menangani pengelolaan data, logika bisnis seperti pemrosesan pendaftaran, dan validasi.
+- Model **Subscriber** bisa memiliki tanggung jawab ganda: menyimpan data dan memproses langganan atau berhenti langganan.
+- Model **Notification** harus tahu cara menyimpan notifikasi, menentukan subscriber yang relevan, dan bahkan cara mengirimkannya.
+
+### Dampaknya
+- **Kode menjadi saling tergantung** satu sama lain. Model saling memanggil dan memodifikasi, sehingga debugging menjadi sulit.
+- **Testing menjadi sulit**, karena Model tidak dapat diuji secara terpisah dari dependensinya.
+- **Keterbacaan menurun**, dan akan sulit bagi developer baru untuk memahami peran dari setiap bagian kode.
+
+### Imajinasikan Skenario Ini
+Bayangkan `Program` perlu mengirim notifikasi ke semua `Subscriber`:
+- Tanpa pemisahan, `Program` harus tahu bagaimana mengambil `Subscriber`, bagaimana memproses `Notification`, dan bagaimana mengirimkannya.
+- Setiap Model tahu tentang Model lain, menciptakan jaringan dependensi yang kompleks dan rentan error.
+
+---
+
+## Eksplorasi dan Manfaat Postman
+
+**Postman** adalah alat yang sangat bermanfaat untuk menguji dan mendokumentasikan REST API. Penggunaan Postman dalam proyek seperti BambangShop sangat membantu dalam mengembangkan dan memverifikasi fitur backend.
+
+### Fitur Postman yang Membantu Pengembangan
+
+1. **Pengujian HTTP Endpoint**
+   - Cek semua metode: `GET`, `POST`, `PUT`, `DELETE`.
+   - Kirim permintaan dengan body JSON, headers, dan parameter.
+
+2. **Environment dan Variabel**
+   - Definisikan variabel untuk base URL dan token auth sesuai environment (dev, staging, production).
+   - Ganti-ganti konfigurasi tanpa ubah manual.
+
+3. **Collection & Folder**
+   - Simpan endpoint dalam koleksi berdasarkan modul atau fitur.
+   - Memudahkan navigasi dan kolaborasi.
+
+4. **Automated Testing dan Test Scripts**
+   - Tulis skrip di tab “Tests” untuk memverifikasi status response, struktur JSON, dan nilai-nilai kunci.
+   - Contoh: `pm.response.to.have.status(200);`
+
+5. **Mock Server dan Monitoring**
+   - Simulasikan endpoint yang belum jadi.
+   - Jalankan pengujian terjadwal untuk cek kesehatan API.
+
+6. **Kolaborasi Tim**
+   - Share koleksi API dengan rekan satu tim.
+   - Lacak perubahan dan histori request.
+
+### Penggunaan Nyata dalam Proyek
+- Menguji pendaftaran `Subscriber` dan pengiriman `Notification`.
+- Verifikasi response API dari fitur `subscribe` dan `unsubscribe`.
+- Cek validasi input untuk endpoint `Program`.
+- Membantu dokumentasi API yang bisa dibagikan ke tim frontend.
+
+---
+
+## Kesimpulan
+
+- Memisahkan Service dan Repository dari Model membuat arsitektur lebih bersih, scalable, dan maintainable.
+- Jika hanya menggunakan Model, akan muncul kompleksitas tinggi akibat beban tanggung jawab ganda pada Model.
+- Postman sangat membantu dalam pengujian API secara cepat, efisien, dan kolaboratif, serta cocok digunakan dalam proyek saat ini maupun proyek skala besar di masa depan.
+
+
 #### Reflection Publisher-3
