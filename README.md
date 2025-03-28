@@ -299,3 +299,84 @@ Bayangkan `Program` perlu mengirim notifikasi ke semua `Subscriber`:
 
 
 #### Reflection Publisher-3
+
+# Analisis Pola Observer dan Implementasi Multi-Threading dalam Tutorial BambangShop
+
+Dokumen ini membahas implementasi pola Observer dalam konteks proyek tutorial BambangShop, serta mempertimbangkan variasi pendekatan dan dampaknya terhadap sistem, khususnya dalam hal performa dan arsitektur.
+
+
+
+## Variasi Observer Pattern yang Digunakan
+
+Dalam proyek ini, kita menggunakan **Push Model** dari pola Observer.
+
+### Ciri-Ciri Push Model yang Terlihat di Kode
+- Publisher (misalnya `NotificationService` atau `ProductService`) secara **aktif mengirim data** ke semua subscriber ketika suatu event terjadi.
+- Subscriber **tidak perlu meminta data**; data dikirim langsung dalam bentuk notifikasi.
+- Informasi yang dikirim sudah dikemas lengkap, biasanya dalam bentuk JSON atau payload tertentu.
+
+Dengan kata lain, **publisher mendorong notifikasi kepada subscriber** secara langsung tanpa menunggu permintaan dari subscriber.
+
+
+
+## Pertimbangan Jika Menggunakan Pull Model
+
+### Apa Itu Pull Model?
+Dalam Pull Model, subscriber diberi tahu bahwa ada update (bisa dengan sinyal sederhana), lalu mereka **menarik atau mengambil data** sendiri dari publisher.
+
+### Kelebihan Pull Model
+1. **Kontrol di Tangan Subscriber**  
+   Subscriber dapat menentukan kapan dan bagaimana mereka mengambil data.
+
+2. **Minim Beban Publisher**  
+   Publisher tidak perlu menyiapkan data dan mengirimkannya ke semua subscriber secara langsung.
+
+3. **Toleransi Kegagalan Lebih Baik**  
+   Jika subscriber sedang tidak aktif, data tetap tersedia untuk diambil kemudian.
+
+### Kekurangan Pull Model
+1. **Delay Informasi**  
+   Subscriber mungkin tidak mendapatkan update secara real-time, tergantung frekuensi polling.
+
+2. **Overhead pada Subscriber dan Jaringan**  
+   Subscriber harus secara berkala melakukan permintaan untuk memeriksa apakah ada update.
+
+3. **Arsitektur Lebih Rumit**  
+   Diperlukan endpoint dan logika tambahan untuk subscriber melakukan request terhadap data terbaru.
+
+4. **Notifikasi Bisa Tidak Terlihat**  
+   Jika subscriber tidak melakukan polling secara berkala, mereka bisa saja melewatkan update penting.
+
+### Kesimpulan
+Meskipun Pull Model memberikan fleksibilitas pada subscriber, dalam konteks BambangShop yang membutuhkan pengiriman notifikasi secara langsung dan tepat waktu, **Push Model lebih sesuai** karena memastikan semua subscriber menerima informasi tanpa keterlambatan.
+
+
+
+## Dampak Jika Tidak Menggunakan Multi-Threading dalam Proses Notifikasi
+
+### Apa yang Terjadi Saat Tidak Menggunakan Multi-Threading?
+
+1. **Blocking pada Proses Notifikasi**
+   - Pengiriman notifikasi dilakukan satu per satu secara sinkron.
+   - Proses utama (misalnya penambahan produk) tertunda karena menunggu semua notifikasi selesai dikirim.
+
+2. **Penurunan Respons Aplikasi**
+   - Operasi API akan terasa lambat atau bahkan gagal ketika jumlah subscriber meningkat.
+   - Permintaan HTTP dari subscriber yang lambat dapat menahan seluruh alur proses.
+
+3. **Risiko Timeout**
+   - Jika pengiriman notifikasi ke salah satu subscriber memakan waktu lama, seluruh proses dapat mengalami timeout, terutama pada sistem real-time.
+
+4. **Kehilangan Skalabilitas**
+   - Sangat sulit untuk menangani skenario dengan ratusan atau ribuan subscriber tanpa eksekusi paralel.
+
+### Keuntungan Multi-Threading
+- Notifikasi dikirim secara paralel ke semua subscriber.
+- Publisher tidak perlu menunggu satu per satu.
+- Performa sistem lebih stabil, cepat, dan responsif, terutama saat ada lonjakan jumlah subscriber.
+
+### Kesimpulan
+Tanpa multi-threading, sistem akan mengalami bottleneck serius dalam proses notifikasi. Oleh karena itu, **multi-threading adalah kebutuhan krusial** dalam skenario ini untuk menjaga performa dan pengalaman pengguna yang baik.
+
+
+
